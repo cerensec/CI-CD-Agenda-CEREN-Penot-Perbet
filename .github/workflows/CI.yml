@@ -57,4 +57,4 @@ jobs:
           docker build -t $IMAGE_NAME:latest .
       
       - name: Push de l'image dans le Dockerhub
-        run: docker push ${{ secrets.DOCKERHUB_TOKEN }}/$IMAGE_NAME
+        run: docker push cceren28/$IMAGE_NAME
