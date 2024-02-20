@@ -46,15 +46,11 @@ jobs:
         uses: actions/checkout@v3
 
       - name: Login au Dockerhub
-        uses: docker/login-action@v1
-        with:
-          registry: docker.io
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
+        run: docker login -u ${{ secrets.DOCKERHUB_USERNAME }} -p ${{ secrets.DOCKERHUB_TOKEN }} docker.io
 
       - name: Build Docker image
         run: |
-          docker build -t $IMAGE_NAME:latest .
+          docker build -t $IMAGE_NAME .
       
       - name: Push de l'image dans le Dockerhub
-        run: docker push cceren28/$IMAGE_NAME
+        run: docker push $IMAGE_NAME
