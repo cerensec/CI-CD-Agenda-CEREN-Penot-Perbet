@@ -53,7 +53,7 @@ jobs:
 
       - name: Build Docker image
         run: |
-          docker build -t $IMAGE_NAME .
+          docker build -t $IMAGE_NAME:latest .
       
       - name: Push de l'image dans le Dockerhub
-        run: docker push cceren28/$IMAGE_NAME
+        run: docker push ${{ secrets.DOCKERHUB_USERNAME }}/$IMAGE_NAME:latest
