@@ -1,0 +1,58 @@
+name: Docker-CI
+
+on:
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    env:
+      IMAGE_NAME: ci-cd-calculatrice
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '19'
+
+      - name: Install dependences
+        run: npm install
+
+      - name: Install hadolint
+        run: |
+          wget -O /bin/hadolint https://github.com/hadolint/hadolint/releases/latest/download/hadolint-Linux-x86_64
+          chmod +x /bin/hadolint
+
+      - name: Hadolint
+        run: hadolint Dockerfile
+
+      - name: Build Docker image
+        run: |
+          docker build -t $IMAGE_NAME .
+
+      - name: Lint dans le Docker container
+        run: docker container run --rm $IMAGE_NAME npm run lint
+      
+      - name: Test Run
+        run: docker container run --rm -p 3000:3000 $IMAGE_NAME npm test
+  
+  deploy:
+    runs-on: ubuntu-latest
+
+    needs: build
+
+    steps:
+      - name: Login au Dockerhub
+        uses: docker/login-action@v1
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+      
+      - name: Push de l'image dans le Dockerhub
+        run: docker push $IMAGE_NAME
