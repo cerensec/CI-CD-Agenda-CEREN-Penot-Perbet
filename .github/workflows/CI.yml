@@ -56,4 +56,4 @@ jobs:
           docker build -t $IMAGE_NAME .
       
       - name: Push de l'image dans le Dockerhub
-        run: docker push $IMAGE_NAME
+        run: docker push cceren28/$IMAGE_NAME
