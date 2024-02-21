@@ -50,20 +50,21 @@ jobs:
 
       - name: Build Docker image
         run: |
-          docker build -t calculatrice:${{ github.ref_name  }} .
+          docker build -t calculatrice:${{ github.ref_name }} .
       
-      - name: Tag Docker image with latest
+      - name: Tag Docker image with version
         run: |
-          docker tag calculatrice:${{ github.ref_name  }} ${{ secrets.DOCKERHUB_USERNAME }}/calculatrice:latest
+          docker tag calculatrice:${{ github.ref_name }} ${{ secrets.DOCKERHUB_USERNAME }}/calculatrice:${{ github.ref_name }}
+          docker tag calculatrice:${{ github.ref_name }} ${{ secrets.DOCKERHUB_USERNAME }}/calculatrice:latest
 
       - name: Push Docker image
         run: |
-          docker push ${{ secrets.DOCKERHUB_USERNAME }}/calculatrice:${{ github.ref_name  }}
+          docker push ${{ secrets.DOCKERHUB_USERNAME }}/calculatrice:${{ github.ref_name }}
           docker push ${{ secrets.DOCKERHUB_USERNAME }}/calculatrice:latest
 
       - name: Generate GitHub Release Notes
         uses: softprops/action-gh-release@v1
         with:
           files: ''
-          body: 'Release ${{ github.ref_name  }}'
+          body: 'Release ${{ github.ref_name }}'
           token: ${{ secrets.GITHUB_TOKEN }}
