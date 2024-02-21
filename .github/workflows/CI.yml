@@ -1,9 +1,9 @@
-name: Docker-CI
+name: Docker-CI-CD
 
 on:
-  pull_request:
-    branches:
-      - main
+  push:
+    tags:
+      - '*'
 
 jobs:
   build:
@@ -16,9 +16,9 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: '19'
+          node-version: '14'
 
-      - name: Install dependences
+      - name: Install dependencies
         run: npm install
 
       - name: Hadolint
@@ -33,19 +33,15 @@ jobs:
         run: npm test
   
   deploy:
-
-    env:
-      IMAGE_NAME: ci-cd-calculatrice
-
     runs-on: ubuntu-latest
-
     needs: build
+    if: startsWith(github.ref, 'refs/tags/') # Execute only for tag pushes
 
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v3
 
-      - name: Login au Dockerhub
+      - name: Login to Dockerhub
         uses: docker/login-action@v1
         with:
           registry: docker.io
@@ -54,11 +50,20 @@ jobs:
 
       - name: Build Docker image
         run: |
-          docker build -t $IMAGE_NAME:latest .
-
-      - name: Tag image docker
-        run: |
-          docker tag $IMAGE_NAME ${{ secrets.DOCKERHUB_USERNAME }}/$IMAGE_NAME
+          docker build -t $IMAGE_NAME:${{ github.ref }} .
       
-      - name: Push de l'image dans le Dockerhub
-        run: docker push ${{ secrets.DOCKERHUB_USERNAME }}/$IMAGE_NAME
+      - name: Tag Docker image with latest
+        run: |
+          docker tag $IMAGE_NAME:${{ github.ref }} ${{ secrets.DOCKERHUB_USERNAME }}/$IMAGE_NAME:latest
+
+      - name: Push Docker image
+        run: |
+          docker push ${{ secrets.DOCKERHUB_USERNAME }}/$IMAGE_NAME:${{ github.ref }}
+          docker push ${{ secrets.DOCKERHUB_USERNAME }}/$IMAGE_NAME:latest
+
+      - name: Generate GitHub Release Notes
+        uses: softprops/action-gh-release@v1
+        with:
+          files: '' # Specify any files to include in the release
+          body: 'Release ${{ github.ref }}' # Customize release notes body
+          token: ${{ secrets.GITHUB_TOKEN }} # GitHub token for authentication
