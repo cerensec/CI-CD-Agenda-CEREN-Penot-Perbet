@@ -1,13 +1,15 @@
 const express = require('express');
-const http = require('http');
-const router = require('./routes/main');
+const routes = require('./routes/main');
 
-const app = new express();
+const app = express();
 
-app.use('/', router);
+// Middleware to parse JSON bodies
+app.use(express.json());
 
-const port = process.env.PORT || 3000;
-app.set('port', port);
+// Routes
+app.use('/', routes);
 
-const server = http.createServer(app);
-server.listen(port);
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
+    console.log(`Server is running on port ${PORT}`);
+});
