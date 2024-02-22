@@ -1,10 +1,12 @@
 const Router = require('express').Router;
-const welcome = require('./handlers').welcome;
-const add = require('./handlers').add;
+const { welcome, add, subtract, multiply, divide } = require('./handlers');
 
 const router = Router();
 
 router.get('/', welcome);
-router.get('/add/:a/:b', add);
+router.post('/add', add);
+router.post('/subtract', subtract);
+router.post('/multiply', multiply);
+router.post('/divide', divide);
 
 module.exports = router;

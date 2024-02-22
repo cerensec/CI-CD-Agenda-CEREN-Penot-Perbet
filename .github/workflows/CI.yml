@@ -1,9 +1,12 @@
-name: Docker-CI
+name: Docker-CI-CD
 
 on:
-  pull_request:
-    branches:
-      - main
+  push:
+    tags:
+      - '*'
+      
+permissions:
+  contents: write
 
 jobs:
   build:
@@ -16,9 +19,9 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: '19'
+          node-version: '14'
 
-      - name: Install dependences
+      - name: Install dependencies
         run: npm install
 
       - name: Hadolint
@@ -33,19 +36,15 @@ jobs:
         run: npm test
   
   deploy:
-
-    env:
-      IMAGE_NAME: ci-cd-calculatrice
-
     runs-on: ubuntu-latest
-
     needs: build
+    if: startsWith(github.ref, 'refs/tags/')
 
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v3
 
-      - name: Login au Dockerhub
+      - name: Login to Dockerhub
         uses: docker/login-action@v1
         with:
           registry: docker.io
@@ -54,11 +53,21 @@ jobs:
 
       - name: Build Docker image
         run: |
-          docker build -t $IMAGE_NAME:latest .
-
-      - name: Tag image docker
-        run: |
-          docker tag $IMAGE_NAME ${{ secrets.DOCKERHUB_USERNAME }}/$IMAGE_NAME
+          docker build -t calculatrice:${{ github.ref_name }} .
       
-      - name: Push de l'image dans le Dockerhub
-        run: docker push ${{ secrets.DOCKERHUB_USERNAME }}/$IMAGE_NAME
+      - name: Tag Docker image with version
+        run: |
+          docker tag calculatrice:${{ github.ref_name }} ${{ secrets.DOCKERHUB_USERNAME }}/calculatrice:${{ github.ref_name }}
+          docker tag calculatrice:${{ github.ref_name }} ${{ secrets.DOCKERHUB_USERNAME }}/calculatrice:latest
+
+      - name: Push Docker image
+        run: |
+          docker push ${{ secrets.DOCKERHUB_USERNAME }}/calculatrice:${{ github.ref_name }}
+          docker push ${{ secrets.DOCKERHUB_USERNAME }}/calculatrice:latest
+
+      - name: Generate GitHub Release Notes
+        uses: softprops/action-gh-release@v1
+        with:
+          files: ''
+          body: 'Release ${{ github.ref_name }}'
+          token: ${{ secrets.GITHUB_TOKEN }}
